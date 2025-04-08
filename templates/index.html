@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Nhận diện khuôn mặt - Face Detection App{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-4 mb-4">Nhận diện khuôn mặt</h1>
+            <p class="lead mb-4">Chọn phương pháp nhận diện và tải ảnh lên</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="method" class="form-label">Phương pháp nhận diện</label>
+                            <select class="form-select" id="method" name="method" required>
+                                <option value="haar">Haar Cascade</option>
+                                <option value="hog">HOG</option>
+                                <option value="dnn">DNN</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Chọn ảnh</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">Nhận diện</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Chụp ảnh trực tiếp</h5>
+                    <div class="text-center">
+                        <div id="video-container" class="mb-3">
+                            <video id="video" autoplay playsinline class="img-fluid"></video>
+                        </div>
+                        <div class="mb-3">
+                            <button id="capture" class="btn btn-primary">Chụp ảnh</button>
+                            <button id="toggleCamera" class="btn btn-secondary">Tắt camera</button>
+                        </div>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Kết quả</h5>
+                    <div class="text-center">
+                        <img id="resultImage" class="img-fluid" style="display: none;">
+                        <div id="loading" class="spinner-border text-primary" role="status" style="display: none;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let video = document.getElementById('video');
+let canvas = document.getElementById('canvas');
+let captureButton = document.getElementById('capture');
+let toggleCameraButton = document.getElementById('toggleCamera');
+let stream = null;
+let isCameraOn = true;
+
+// Thiết lập camera
+async function setupCamera() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        isCameraOn = true;
+        toggleCameraButton.textContent = 'Tắt camera';
+    } catch (err) {
+        console.error("Lỗi khi truy cập camera:", err);
+        alert("Lỗi khi truy cập camera. Vui lòng kiểm tra quyền truy cập camera.");
+    }
+}
+
+// Bật/tắt camera
+toggleCameraButton.addEventListener('click', () => {
+    if (isCameraOn) {
+        // Tắt camera
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+        video.srcObject = null;
+        isCameraOn = false;
+        toggleCameraButton.textContent = 'Bật camera';
+    } else {
+        // Bật camera
+        setupCamera();
+    }
+});
+
+// Chụp ảnh từ camera
+captureButton.addEventListener('click', () => {
+    if (!isCameraOn) {
+        alert('Vui lòng bật camera trước khi chụp ảnh');
+        return;
+    }
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    
+    canvas.toBlob((blob) => {
+        const formData = new FormData();
+        formData.append('image', blob, 'webcam.jpg');
+        formData.append('method', document.getElementById('method').value);
+        
+        const resultImage = document.getElementById('resultImage');
+        const loading = document.getElementById('loading');
+        
+        resultImage.style.display = 'none';
+        loading.style.display = 'block';
+        
+        fetch('/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const url = URL.createObjectURL(blob);
+            resultImage.src = url;
+            resultImage.style.display = 'block';
+            loading.style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            loading.style.display = 'none';
+            alert('Có lỗi xảy ra khi xử lý ảnh');
+        });
+    }, 'image/jpeg');
+});
+
+// Xử lý form tải ảnh lên
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    formData.append('image', document.getElementById('image').files[0]);
+    formData.append('method', document.getElementById('method').value);
+    
+    const resultImage = document.getElementById('resultImage');
+    const loading = document.getElementById('loading');
+    
+    resultImage.style.display = 'none';
+    loading.style.display = 'block';
+    
+    fetch('/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        const url = URL.createObjectURL(blob);
+        resultImage.src = url;
+        resultImage.style.display = 'block';
+        loading.style.display = 'none';
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        loading.style.display = 'none';
+        alert('Có lỗi xảy ra khi xử lý ảnh');
+    });
+});
+
+// Khởi tạo camera khi trang được tải
+setupCamera();
+
+// Dọn dẹp khi rời trang
+window.addEventListener('beforeunload', () => {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Giới thiệu - Face Detection App{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- About Section -->
+    <div class="row mb-5">
+        <div class="col-12 text-center mb-4">
+            <h1 class="display-4">Về chúng tôi</h1>
+            <p class="lead text-muted">Khám phá công nghệ nhận diện khuôn mặt tiên tiến</p>
+        </div>
+        <div class="col-md-6">
+            <h2 class="h3 mb-4">Công nghệ của chúng tôi</h2>
+            <p>Ứng dụng của chúng tôi sử dụng các công nghệ tiên tiến nhất trong lĩnh vực nhận diện khuôn mặt:</p>
+            <ul class="list-unstyled">
+                <li class="mb-3">
+                    <i class="fas fa-check-circle text-primary me-2"></i>
+                    <strong>Haar Cascade:</strong> Phương pháp cổ điển sử dụng các đặc trưng Haar-like để phát hiện khuôn mặt
+                </li>
+                <li class="mb-3">
+                    <i class="fas fa-check-circle text-primary me-2"></i>
+                    <strong>HOG (Histogram of Oriented Gradients):</strong> Phương pháp hiện đại sử dụng gradient để mô tả đặc trưng khuôn mặt
+                </li>
+                <li class="mb-3">
+                    <i class="fas fa-check-circle text-primary me-2"></i>
+                    <strong>DNN (Deep Neural Network):</strong> Mạng nơ-ron sâu cho độ chính xác cao nhất
+                </li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <img src="/static/images/about-image.jpg" alt="Technology" class="img-fluid rounded shadow">
+        </div>
+    </div>
+
+    <!-- Technology Details -->
+    <div class="row mb-5">
+        <div class="col-12 text-center mb-4">
+            <h2 class="display-5">Chi tiết công nghệ</h2>
+            <p class="lead text-muted">Tìm hiểu sâu hơn về các phương pháp nhận diện</p>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="h5 mb-3">Haar Cascade</h3>
+                    <p>Phương pháp Haar Cascade sử dụng các bộ lọc đặc trưng để phát hiện khuôn mặt. Đây là phương pháp:</p>
+                    <ul>
+                        <li>Nhanh và hiệu quả</li>
+                        <li>Phù hợp với tài nguyên hạn chế</li>
+                        <li>Độ chính xác tốt trong điều kiện lý tưởng</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="h5 mb-3">HOG</h3>
+                    <p>Histogram of Oriented Gradients là phương pháp hiện đại sử dụng gradient để mô tả đặc trưng:</p>
+                    <ul>
+                        <li>Độ chính xác cao</li>
+                        <li>Khả năng chống nhiễu tốt</li>
+                        <li>Phù hợp với nhiều góc chụp</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="h5 mb-3">DNN</h3>
+                    <p>Deep Neural Network là phương pháp tiên tiến nhất sử dụng học sâu:</p>
+                    <ul>
+                        <li>Độ chính xác cao nhất</li>
+                        <li>Khả năng học và thích nghi</li>
+                        <li>Xử lý được nhiều trường hợp phức tạp</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Section -->
+    <div class="row mb-5">
+        <div class="col-12 text-center mb-4">
+            <h2 class="display-5">Đội ngũ phát triển</h2>
+            <p class="lead text-muted">Những người đứng sau công nghệ</p>
+        </div>
+        <div class="col-md-4 text-center mb-4">
+            <img src="/static/images/team1.jpg" alt="Team Member" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+            <h3 class="h5">Nguyễn Văn A</h3>
+            <p class="text-muted">Trưởng nhóm phát triển</p>
+        </div>
+        <div class="col-md-4 text-center mb-4">
+            <img src="/static/images/team2.jpg" alt="Team Member" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+            <h3 class="h5">Trần Thị B</h3>
+            <p class="text-muted">Chuyên gia AI</p>
+        </div>
+        <div class="col-md-4 text-center mb-4">
+            <img src="/static/images/team3.jpg" alt="Team Member" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+            <h3 class="h5">Lê Văn C</h3>
+            <p class="text-muted">Kỹ sư phần mềm</p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

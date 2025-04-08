@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Trang chủ - Face Detection App{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-4 mb-4">Chào mừng đến với Face Detection App</h1>
+            <p class="lead mb-4">Ứng dụng nhận diện khuôn mặt sử dụng công nghệ AI tiên tiến</p>
+            <div class="mb-5">
+                <a href="{{ url_for('detection') }}" class="btn btn-primary btn-lg">Bắt đầu</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <i class="fas fa-camera fa-3x mb-3 text-primary"></i>
+                    <h3>Tải ảnh lên</h3>
+                    <p>Tải lên ảnh chứa khuôn mặt cần nhận diện</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <i class="fas fa-robot fa-3x mb-3 text-primary"></i>
+                    <h3>AI Phân tích</h3>
+                    <p>Hệ thống AI sẽ tự động nhận diện khuôn mặt trong ảnh</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <i class="fas fa-download fa-3x mb-3 text-primary"></i>
+                    <h3>Tải kết quả</h3>
+                    <p>Tải xuống ảnh đã được đánh dấu khuôn mặt</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

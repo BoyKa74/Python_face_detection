@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}FAQ - Face Detection App{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="text-center mb-5">
+                <h1 class="display-4">Câu hỏi thường gặp</h1>
+                <p class="lead text-muted">Tìm câu trả lời cho những thắc mắc phổ biến</p>
+            </div>
+
+            <div class="accordion" id="faqAccordion">
+                <!-- General Questions -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            Face Detection là gì?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Face Detection là công nghệ nhận diện và xác định vị trí khuôn mặt trong hình ảnh hoặc video. 
+                            Công nghệ này sử dụng các thuật toán máy học và thị giác máy tính để phát hiện các đặc điểm 
+                            của khuôn mặt như mắt, mũi, miệng và xác định vị trí của chúng trong khung hình.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            Ứng dụng này có thể làm gì?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Ứng dụng của chúng tôi có thể:
+                            <ul>
+                                <li>Phát hiện khuôn mặt trong hình ảnh tĩnh</li>
+                                <li>Phát hiện khuôn mặt trong video thời gian thực</li>
+                                <li>So sánh và nhận dạng khuôn mặt</li>
+                                <li>Phân tích cảm xúc trên khuôn mặt</li>
+                                <li>Đếm số lượng khuôn mặt trong một khung hình</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Technical Questions -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            Công nghệ nào được sử dụng trong ứng dụng?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Ứng dụng sử dụng nhiều công nghệ tiên tiến:
+                            <ul>
+                                <li>Haar Cascade Classifier cho phát hiện khuôn mặt cơ bản</li>
+                                <li>HOG (Histogram of Oriented Gradients) cho phát hiện khuôn mặt chính xác hơn</li>
+                                <li>DNN (Deep Neural Network) cho nhận dạng khuôn mặt</li>
+                                <li>OpenCV cho xử lý hình ảnh</li>
+                                <li>dlib cho các tính năng nâng cao</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            Độ chính xác của hệ thống như thế nào?
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Độ chính xác của hệ thống phụ thuộc vào nhiều yếu tố:
+                            <ul>
+                                <li>Chất lượng hình ảnh đầu vào</li>
+                                <li>Điều kiện ánh sáng</li>
+                                <li>Góc chụp</li>
+                                <li>Khoảng cách từ camera</li>
+                            </ul>
+                            Trong điều kiện lý tưởng, hệ thống có thể đạt độ chính xác lên đến 95-98%.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Usage Questions -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                            Làm thế nào để sử dụng ứng dụng?
+                        </button>
+                    </h2>
+                    <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <ol>
+                                <li>Truy cập vào trang chủ của ứng dụng</li>
+                                <li>Chọn chế độ phát hiện (hình ảnh hoặc video)</li>
+                                <li>Tải lên hình ảnh hoặc bật camera</li>
+                                <li>Hệ thống sẽ tự động phát hiện và hiển thị kết quả</li>
+                                <li>Bạn có thể tải xuống kết quả hoặc chia sẻ nó</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                            Có giới hạn về kích thước file không?
+                        </button>
+                    </h2>
+                    <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Có, để đảm bảo hiệu suất tốt nhất:
+                            <ul>
+                                <li>Kích thước file tối đa: 10MB</li>
+                                <li>Định dạng được hỗ trợ: JPG, PNG, MP4</li>
+                                <li>Độ phân giải khuyến nghị: 1920x1080 hoặc thấp hơn</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
