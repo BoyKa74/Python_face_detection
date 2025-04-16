@@ -3,19 +3,24 @@ import os
 import cv2
 import dlib
 import numpy as np
-from flask import Flask, request, send_file, render_template, redirect, url_for, session, flash
+from flask import Flask, request, send_file, render_template, redirect, url_for, session, flash, jsonify
 from werkzeug.utils import secure_filename
 from user_manager import UserManager
+import base64
+import shutil
+from datetime import datetime
 
 # Khởi tạo Flask app
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Khóa bí mật cho session
 UPLOAD_FOLDER = "uploads"  # Thư mục lưu ảnh tải lên
 RESULT_FOLDER = "results"  # Thư mục lưu ảnh kết quả
+STATIC_FOLDER = "static/results"
 
 # Tạo thư mục nếu chưa tồn tại
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(RESULT_FOLDER, exist_ok=True)
+os.makedirs(STATIC_FOLDER, exist_ok=True)
 
 # Load các mô hình nhận diện khuôn mặt
 haar_cascade = cv2.CascadeClassifier("models/haarcascade_frontalface_default.xml")  # Mô hình Haar Cascade
@@ -24,49 +29,101 @@ dnn_net = cv2.dnn.readNetFromTensorflow(  # Mô hình DNN
     "models/opencv_face_detector_uint8.pb", "models/opencv_face_detector.pbtxt"
 )
 
+# Load mô hình nhận diện giới tính
+gender_net = cv2.dnn.readNet(
+    'models/gender_net.caffemodel',
+    'models/gender_deploy.prototxt'
+)
+
+# Labels cho giới tính
+GENDER_LIST = ['Nam', 'Nữ']
+
 # Khởi tạo UserManager để quản lý người dùng
 user_manager = UserManager()
 
-def detect_faces(image_path, method):
+def detect_faces_and_gender(image_path, method):
     """
-    Hàm nhận diện khuôn mặt trong ảnh
-    Args:
-        image_path: Đường dẫn đến ảnh cần xử lý
-        method: Phương pháp nhận diện (haar, hog, dnn)
-    Returns:
-        Đường dẫn đến ảnh kết quả đã vẽ khung khuôn mặt
+    Hàm nhận diện khuôn mặt và giới tính trong ảnh
     """
-    # Đọc ảnh và chuyển sang grayscale
+    # Đọc ảnh
     image = cv2.imread(image_path)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    if image is None:
+        raise Exception("Không thể đọc ảnh")
 
+    # Chuyển sang grayscale cho nhận diện khuôn mặt
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    faces = []
     # Nhận diện khuôn mặt theo phương pháp được chọn
     if method == "haar":
-        faces = haar_cascade.detectMultiScale(gray, 1.1, 4)
+        face_rects = haar_cascade.detectMultiScale(gray, 1.1, 4)
+        faces = [(x, y, x+w, y+h) for (x, y, w, h) in face_rects]
     elif method == "hog":
-        faces = hog_detector(gray)
-        faces = [(d.left(), d.top(), d.width(), d.height()) for d in faces]
-    elif method == "dnn":
-        blob = cv2.dnn.blobFromImage(image, scalefactor=1.0, size=(300, 300), mean=[104, 117, 123])
+        face_rects = hog_detector(gray)
+        faces = [(f.left(), f.top(), f.right(), f.bottom()) for f in face_rects]
+    else:  # dnn
+        height, width = image.shape[:2]
+        blob = cv2.dnn.blobFromImage(image, 1.0, (300, 300), [104, 117, 123])
         dnn_net.setInput(blob)
         detections = dnn_net.forward()
-        faces = []
-        h, w = image.shape[:2]
+        
         for i in range(detections.shape[2]):
             confidence = detections[0, 0, i, 2]
-            if confidence > 0.4:
-                box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
-                (x1, y1, x2, y2) = box.astype("int")
-                faces.append((x1, y1, x2 - x1, y2 - y1))
+            if confidence > 0.5:
+                box = detections[0, 0, i, 3:7] * np.array([width, height, width, height])
+                faces.append(tuple(box.astype("int")))
 
-    # Vẽ khung xanh lá cây quanh khuôn mặt
-    for (x, y, w, h) in faces:
-        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    # Thống kê
+    stats = {
+        'total': len(faces),
+        'Nam': 0,
+        'Nữ': 0
+    }
+
+    # Xử lý từng khuôn mặt
+    for (x1, y1, x2, y2) in faces:
+        try:
+            # Cắt và chuẩn bị ảnh khuôn mặt
+            face_img = image[y1:y2, x1:x2]
+            if face_img.size == 0:
+                continue
+
+            # Resize ảnh cho mô hình giới tính
+            face_blob = cv2.dnn.blobFromImage(
+                cv2.resize(face_img, (227, 227)),
+                1.0,
+                (227, 227),
+                (78.4263377603, 87.7689143744, 114.895847746),
+                swapRB=False
+            )
+
+            # Dự đoán giới tính
+            gender_net.setInput(face_blob)
+            gender_preds = gender_net.forward()
+            gender = GENDER_LIST[gender_preds[0].argmax()]
+            confidence = gender_preds[0].max() * 100
+
+            # Cập nhật thống kê
+            stats[gender] += 1
+
+            # Vẽ khung và nhãn
+            color = (0, 255, 0) if gender == "Nam" else (255, 0, 0)
+            cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
+            label = f"{gender} ({confidence:.1f}%)"
+            cv2.putText(image, label, (x1, y1-10),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+
+        except Exception as e:
+            print(f"Lỗi khi nhận diện giới tính: {str(e)}")
+            cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
     # Lưu ảnh kết quả
-    result_path = os.path.join(RESULT_FOLDER, os.path.basename(image_path))
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    result_filename = f"result_{timestamp}.jpg"
+    result_path = os.path.join(RESULT_FOLDER, result_filename)
     cv2.imwrite(result_path, image)
-    return result_path
+
+    return result_path, result_filename, stats
 
 # Route cho trang chủ
 @app.route("/")
@@ -127,25 +184,41 @@ def logout():
 # Route cho việc tải ảnh lên và xử lý
 @app.route("/upload", methods=["POST"])
 def upload_file():
-    if not user_manager.is_logged_in():
-        return "Unauthorized", 401
-        
-    if "image" not in request.files:
-        return "Không có ảnh được tải lên", 400
-    file = request.files["image"]
-    method = request.form.get("method")
+    try:
+        if "image" not in request.files:
+            return jsonify({"success": False, "error": "Không có ảnh được tải lên"}), 400
 
-    if file.filename == "":
-        return "Không có file được chọn", 400
+        file = request.files["image"]
+        if file.filename == "":
+            return jsonify({"success": False, "error": "Không có file được chọn"}), 400
 
-    # Lưu file tải lên
-    filename = secure_filename(file.filename)
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(file_path)
+        # Lưu file tải lên
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
 
-    # Xử lý ảnh và trả về kết quả
-    result_path = detect_faces(file_path, method)
-    return send_file(result_path, mimetype="image/jpeg")
+        # Xử lý ảnh
+        method = request.form.get("method", "haar")
+        result_path, result_filename, stats = detect_faces_and_gender(file_path, method)
+
+        # Đọc ảnh kết quả và chuyển về base64
+        with open(result_path, 'rb') as f:
+            image_data = base64.b64encode(f.read()).decode('utf-8')
+
+        # Trả về kết quả
+        return jsonify({
+            'success': True,
+            'image': image_data,
+            'filename': result_filename,
+            'stats': stats
+        })
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
 
 # Route cho việc tải xuống ảnh kết quả
 @app.route("/download/<filename>")
@@ -175,6 +248,31 @@ def contact():
         flash("Cảm ơn bạn đã liên hệ với chúng tôi!", "success")
         return redirect(url_for('contact'))
     return render_template("contact.html")
+
+@app.route("/save_image", methods=["POST"])
+def save_image():
+    try:
+        data = request.json
+        filename = data.get('filename')
+        if not filename:
+            return jsonify({"success": False, "error": "Không có tên file"}), 400
+
+        # Copy ảnh từ thư mục tạm sang static
+        src_path = os.path.join(RESULT_FOLDER, filename)
+        dst_path = os.path.join(STATIC_FOLDER, filename)
+        shutil.copy2(src_path, dst_path)
+
+        return jsonify({
+            'success': True,
+            'message': 'Đã lưu ảnh thành công',
+            'path': f'/static/results/{filename}'
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
 
 if __name__ == "__main__":
     app.run(debug=True)
